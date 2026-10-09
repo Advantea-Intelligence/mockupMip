@@ -859,6 +859,7 @@ html[data-theme='dark'] .theme-toggle .icon-moon, html[data-theme='light'] .them
     <button data-set-screen="pistola-en-uso">En uso</button>
     <span class="screen-group">Catálogo</span>
     <button data-set-screen="alertas">Alertas</button>
+    <button data-set-screen="flujo">Flujo</button>
   </nav>
   <div class="segmented device-size" aria-label="Tamaño de la pistola" hidden>
     <button data-set-device="8h">8" horizontal</button>
@@ -8156,6 +8157,893 @@ html[data-theme='dark'] .theme-toggle .icon-moon, html[data-theme='light'] .them
     </div>
   </section>
 </div>
+
+<style>
+/* Flow storyboard of the MIP: every rule scoped to this screen. */
+[data-screen="flujo"] .fl-intro { flex: none; margin: 2px 0 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
+[data-screen="flujo"] .fl-top { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+[data-screen="flujo"] .fl-top-title { margin-right: 4px; font-size: 12px; font-weight: 900; color: var(--muted); }
+[data-screen="flujo"] .fl-filter { cursor: pointer; border: 1px solid var(--line); font-family: var(--font); }
+[data-screen="flujo"] .fl-filter:hover { border-color: var(--line-strong); }
+[data-screen="flujo"] .fl-filter.is-on { background: var(--brand); border-color: var(--brand); color: #fff; }
+[data-screen="flujo"] .fl-body { flex: 1; min-height: 0; overflow: auto; padding-right: 6px; }
+
+/* Actor colours: office brand, warehouse amber, plant green, system grey. */
+[data-screen="flujo"] .fl-actor-office { color: var(--brand); }
+[data-screen="flujo"] .fl-actor-warehouse { color: var(--warn-text); }
+[data-screen="flujo"] .fl-actor-plant { color: var(--ok-text); }
+[data-screen="flujo"] .fl-actor-system { color: var(--muted); }
+[data-screen="flujo"] .fl-figure { flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+[data-screen="flujo"] .fl-avatar { position: relative; flex: none; display: grid; place-items: center; width: 66px; height: 66px; border-radius: 16px; background: var(--raised); border: 1px solid var(--line); }
+[data-screen="flujo"] .fl-avatar-mini { width: 36px; height: 36px; border-radius: 10px; }
+[data-screen="flujo"] .fl-step-number { position: absolute; top: -4px; left: -4px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--text); color: var(--page); font-size: 12px; font-weight: 900; }
+
+/* Legend and state machine. */
+[data-screen="flujo"] .fl-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 12px; padding: 10px 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+[data-screen="flujo"] .fl-legend-title { font-size: 12px; font-weight: 900; color: var(--muted); }
+[data-screen="flujo"] .fl-legend-gap { margin-left: 12px; }
+[data-screen="flujo"] .fl-legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; }
+[data-screen="flujo"] .fl-machine { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 18px; }
+[data-screen="flujo"] .fl-machine > .card { gap: 8px; padding: 12px 14px; }
+[data-screen="flujo"] .fl-machine-order { grid-column: 1 / -1; }
+[data-screen="flujo"] .fl-machine-title { font-size: 14px; font-weight: 900; }
+[data-screen="flujo"] .fl-machine-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+[data-screen="flujo"] .fl-machine-branch { padding-left: 18px; }
+[data-screen="flujo"] .fl-branch-mark { min-width: 64px; font-size: 12px; font-weight: 800; color: var(--muted); }
+[data-screen="flujo"] .fl-machine-note { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.4; color: var(--muted); }
+[data-screen="flujo"] .fl-machine-row .fl-machine-note { margin-left: 6px; font-style: italic; }
+[data-screen="flujo"] .fl-arrow-label { display: inline-flex; flex-direction: column; align-items: center; min-width: 34px; color: var(--muted); }
+[data-screen="flujo"] .fl-arrow-label small { font-size: 10px; font-weight: 800; line-height: 1.1; text-align: center; max-width: 130px; }
+[data-screen="flujo"] .fl-arrow { width: 16px; height: 16px; }
+
+/* State chips: code value small and mono beside the Spanish label. */
+[data-screen="flujo"] .chip .mono { font-size: 9.5px; font-weight: 600; opacity: 0.75; }
+[data-screen="flujo"] .fl-chip-neutral-strong { background: var(--neutral-soft); color: var(--text); }
+[data-screen="flujo"] .fl-chip-warn { background: var(--warn-soft); color: var(--warn-text); }
+[data-screen="flujo"] .fl-chip-ok { background: var(--ok-soft); color: var(--ok-text); }
+[data-screen="flujo"] .fl-chip-danger { background: var(--danger-soft); color: var(--danger-text); }
+[data-screen="flujo"] .fl-chip-stamp { background: transparent; border: 1px dashed var(--ok-text); color: var(--ok-text); }
+
+/* Origin tags (same look as the alert catalogue). */
+[data-screen="flujo"] .fl-origin { flex: none; display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 900; white-space: nowrap; }
+[data-screen="flujo"] .fl-origin-code { background: var(--ok-soft); color: var(--ok-text); }
+[data-screen="flujo"] .fl-origin-decided { background: var(--neutral-soft); color: var(--text); }
+[data-screen="flujo"] .fl-origin-undefined { background: var(--warn-soft); color: var(--warn-text); }
+
+/* Cases: a storyboard of step cards that wraps on narrow widths. */
+[data-screen="flujo"] .fl-case + .fl-case { margin-top: 22px; }
+[data-screen="flujo"] .fl-case-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 10px; }
+[data-screen="flujo"] .fl-case-head h2 { margin: 0; font-size: 17px; font-weight: 900; }
+[data-screen="flujo"] .fl-case-letter { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--brand); color: #fff; font-size: 14px; font-weight: 900; }
+[data-screen="flujo"] .fl-case-summary { font-size: 13px; font-weight: 700; color: var(--muted); }
+[data-screen="flujo"] .fl-case-tags { display: inline-flex; gap: 5px; margin-left: auto; }
+[data-screen="flujo"] .fl-board { display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px 4px; }
+[data-screen="flujo"] .fl-step { width: 240px; gap: 8px; padding: 12px; border-top: 4px solid currentColor; }
+[data-screen="flujo"] .fl-step-office { border-top-color: var(--brand); }
+[data-screen="flujo"] .fl-step-warehouse { border-top-color: var(--warn); }
+[data-screen="flujo"] .fl-step-plant { border-top-color: var(--ok); }
+[data-screen="flujo"] .fl-step-system { border-top-color: var(--line-strong); }
+[data-screen="flujo"] .fl-step-highlight { box-shadow: 0 0 0 2px var(--ok), var(--shadow); }
+[data-screen="flujo"] .fl-step-head { display: flex; align-items: center; gap: 10px; }
+[data-screen="flujo"] .fl-step-who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+[data-screen="flujo"] .fl-step-who b { font-size: 13px; font-weight: 900; line-height: 1.2; }
+[data-screen="flujo"] .fl-step-who span { font-size: 11px; font-weight: 800; color: var(--muted); }
+[data-screen="flujo"] .fl-bubble { position: relative; display: flex; align-items: flex-start; gap: 5px; margin-top: 6px; padding: 8px 10px; background: var(--raised); border: 1px solid var(--line-strong); border-radius: 12px; font-size: 13px; font-weight: 900; line-height: 1.3; }
+[data-screen="flujo"] .fl-bubble::before { content: ''; position: absolute; top: -7px; left: 26px; width: 12px; height: 12px; background: var(--raised); border-left: 1px solid var(--line-strong); border-top: 1px solid var(--line-strong); transform: rotate(45deg); }
+[data-screen="flujo"] .fl-bubble .icon { margin-top: 2px; color: var(--danger-text); }
+[data-screen="flujo"] .fl-step-blocked .fl-bubble { border-color: var(--danger); }
+[data-screen="flujo"] .fl-step-blocked .fl-bubble::before { border-color: var(--danger); }
+[data-screen="flujo"] .fl-text { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.4; }
+[data-screen="flujo"] .fl-states { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; margin-top: auto; padding-top: 4px; }
+[data-screen="flujo"] .fl-states-none { font-size: 11px; font-weight: 800; color: var(--muted); }
+[data-screen="flujo"] .fl-state { display: flex; align-items: center; gap: 6px; max-width: 100%; }
+[data-screen="flujo"] .fl-state .chip { flex-wrap: wrap; column-gap: 5px; row-gap: 0; height: auto; min-height: 22px; padding-top: 2px; padding-bottom: 2px; white-space: normal; }
+[data-screen="flujo"] .fl-state small { flex: none; width: 54px; font-size: 10px; font-weight: 900; line-height: 1.1; color: var(--muted); }
+[data-screen="flujo"] .fl-state small em { display: block; font-style: normal; font-weight: 700; }
+[data-screen="flujo"] .fl-stock { display: flex; align-items: flex-start; gap: 6px; padding-top: 7px; border-top: 1px dashed var(--line-strong); font-size: 12px; font-weight: 700; line-height: 1.35; color: var(--muted); }
+[data-screen="flujo"] .fl-stock .icon { flex: none; margin-top: 1px; }
+[data-screen="flujo"] .fl-step-tag { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--muted); }
+[data-screen="flujo"] .fl-connector { display: grid; place-items: center; width: 22px; color: var(--muted); }
+[data-screen="flujo"] .fl-connector-or { font-size: 13px; font-weight: 900; font-style: italic; }
+
+/* Alerts on the flow: everything marked .fl-alerts-only exists only while «Mostrar» is chosen. */
+[data-screen="flujo"]:not(.fl-show-alerts) .fl-alerts-only { display: none !important; }
+[data-screen="flujo"] .fl-alerts-switch { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+[data-screen="flujo"] .fl-alerts-switch .segmented { padding: 2px; }
+[data-screen="flujo"] .fl-alerts-switch .segmented button { padding: 3px 11px; font-size: 12px; font-family: var(--font); }
+[data-screen="flujo"].fl-show-alerts .fl-states { margin-top: 0; }
+[data-screen="flujo"] .fl-alerts { display: flex; flex-direction: column; gap: 6px; padding: 8px; background: var(--raised); border: 1px solid var(--line); border-radius: var(--radius); }
+[data-screen="flujo"] .fl-alerts-title { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 900; color: var(--muted); }
+[data-screen="flujo"] .fl-alert-list { display: flex; flex-direction: column; gap: 7px; }
+[data-screen="flujo"] .fl-alert { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+[data-screen="flujo"] .fl-alert + .fl-alert { padding-top: 7px; border-top: 1px dashed var(--line-strong); }
+[data-screen="flujo"] .fl-alert-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+[data-screen="flujo"] .fl-alert-head .chip { height: 20px; padding: 0 7px; font-size: 11px; }
+[data-screen="flujo"] .fl-alert-head b { font-size: 12px; font-weight: 900; line-height: 1.25; }
+[data-screen="flujo"] .fl-alert q { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 11.5px; font-weight: 600; line-height: 1.35; color: var(--muted); }
+[data-screen="flujo"] .fl-origin-new { background: var(--brand); color: #fff; }
+[data-screen="flujo"] .fl-outside { padding: 12px 14px; }
+[data-screen="flujo"] .fl-outside .fl-alert-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px 18px; }
+[data-screen="flujo"] .fl-outside .fl-alert + .fl-alert { padding-top: 0; border-top: 0; }
+[data-screen="flujo"] .fl-case-letter-alert { background: var(--warn-soft); color: var(--warn-text); }
+[data-screen="flujo"] .fl-block-mark { display: inline-grid; place-items: center; width: 13px; height: 13px; margin-left: 3px; vertical-align: -2px; border-radius: 50%; background: var(--danger-soft); color: var(--danger-text); cursor: help; }
+[data-screen="flujo"] .fl-block-mark .icon { width: 9px; height: 9px; stroke-width: 3; }
+@media (max-width: 1100px) { [data-screen="flujo"] .fl-machine { grid-template-columns: minmax(0, 1fr); } }
+</style>
+
+<svg style="display:none" aria-hidden="true">
+  <!-- Little people: stroke follows currentColor, fills are the same colour at low opacity. -->
+  <symbol id="fl-fig-office" viewBox="0 0 64 64">
+    <circle cx="20" cy="15" r="7.5" fill="currentColor" fill-opacity="0.22" />
+    <path d="M14 11.5c2-3 9-3.5 12.5 0" />
+    <path d="M7 50V40a13 13 0 0 1 26 0v10" fill="currentColor" fill-opacity="0.22" />
+    <path d="M29 39l9 7h4" />
+    <rect x="38" y="20" width="21" height="15" rx="2" fill="currentColor" fill-opacity="0.12" />
+    <path d="M42 25h9M42 29h13" />
+    <path d="M48.5 35v6M44 41h9" />
+    <path d="M3 50h58M9 50v11M55 50v11" />
+  </symbol>
+  <symbol id="fl-fig-warehouse" viewBox="0 0 64 64">
+    <circle cx="19" cy="17" r="7.5" fill="currentColor" fill-opacity="0.22" />
+    <path d="M10.5 15a8.5 8.5 0 0 1 17 0z" fill="currentColor" />
+    <path d="M9 15h21" />
+    <path d="M6 58V44a13 13 0 0 1 26 0v14" fill="currentColor" fill-opacity="0.22" />
+    <path d="M14 34l5 7 5-7" />
+    <path d="M28 42l8-5" />
+    <path d="M35 34l6-3 2 4-6 3z" fill="currentColor" />
+    <path d="M43 33l8 9M43 33l12 4" stroke-dasharray="2 2.5" stroke-width="1.5" />
+    <rect x="40" y="43" width="10" height="10" rx="1" fill="currentColor" fill-opacity="0.12" />
+    <rect x="51" y="43" width="10" height="10" rx="1" fill="currentColor" fill-opacity="0.12" />
+    <path d="M38 56h25M40 56v4M50.5 56v4M61 56v4" />
+  </symbol>
+  <symbol id="fl-fig-plant" viewBox="0 0 64 64">
+    <circle cx="24" cy="17" r="7.5" fill="currentColor" fill-opacity="0.22" />
+    <path d="M15 14c0-6 18-6 18 0z" fill="currentColor" fill-opacity="0.55" />
+    <path d="M14.5 14.5h19" />
+    <path d="M11 58V44a13 13 0 0 1 26 0v14" fill="currentColor" fill-opacity="0.22" />
+    <path d="M18 33v4h12v-4" />
+    <path d="M17 37h14l2 21H15z" fill="currentColor" fill-opacity="0.45" />
+    <path d="M33 43h7" />
+    <path d="M38 41h20a10 7 0 0 1-20 0z" fill="currentColor" fill-opacity="0.22" />
+    <path d="M44 35c-1.5-2 1.5-3 0-5M51 35c-1.5-2 1.5-3 0-5" stroke-width="1.5" />
+  </symbol>
+  <symbol id="fl-fig-system" viewBox="0 0 64 64">
+    <path d="M27 8a17 17 0 1 0 20 22A13.5 13.5 0 0 1 27 8z" fill="currentColor" fill-opacity="0.22" />
+    <path d="M44 9v4M42 11h4M53 18v3M51.5 19.5h3" stroke-width="1.5" />
+    <circle cx="47" cy="47" r="6" fill="currentColor" fill-opacity="0.22" />
+    <circle cx="47" cy="47" r="2" />
+    <path d="M47 37v3.5M47 53.5V57M37 47h3.5M53.5 47H57M40 40l2.5 2.5M51.5 51.5L54 54M40 54l2.5-2.5M51.5 42.5L54 40" />
+  </symbol>
+</svg>
+<div data-screen="flujo" data-title="Flujo">
+
+  <!-- ======== One design only: the storyboard of the MIP, from the preassignment to the leftover lot.
+       Generated once (gen.js in the agent scratchpad); edit by hand from now on. ======== -->
+  <div class="page-title">Flujo</div>
+  <p class="fl-intro">Quién hace qué y por qué estados pasa una orden: de la preasignación al lote sobrante, con todos los casos especiales.</p>
+
+  <section data-proposal="all">
+    <div class="fl-top">
+      <span class="fl-top-title">Caso</span>
+        <button type="button" class="chip fl-filter is-on" data-flow-filter="all">Todos · 11</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="a">A · Camino normal (OF)</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="b">B · «Generar y lanzar»</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="c">C · Palet incompleto</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="d">D · Faltan líneas sin bulto</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="e">E · Anular orden</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="f">F · Lote menguado / cambio de lote</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="g">G · Reabrir o tirar un bulto</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="h">H · Orden de emergencia</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="i">I · Kanban</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="j">J · Reabrir consumo</button>
+        <button type="button" class="chip fl-filter" data-flow-filter="k">K · Noche</button>
+      <span class="fl-alerts-switch">
+        <span class="fl-top-title">Alertas</span>
+        <span class="segmented" role="group" aria-label="Alertas en el flujo">
+          <button type="button" data-flow-alerts="on">Mostrar</button>
+          <button type="button" data-flow-alerts="off" class="is-active">Ocultar</button>
+        </span>
+      </span>
+    </div>
+
+    <div class="fl-body">
+      <div class="fl-legend">
+        <span class="fl-legend-title">Quién</span>
+        <span class="fl-legend-item"><span class="fl-avatar fl-avatar-mini fl-actor-office"><svg class="fl-figure fl-actor-office" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg></span>Oficina</span>
+        <span class="fl-legend-item"><span class="fl-avatar fl-avatar-mini fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg></span>Operario de almacén</span>
+        <span class="fl-legend-item"><span class="fl-avatar fl-avatar-mini fl-actor-plant"><svg class="fl-figure fl-actor-plant" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-plant" /></svg></span>Operario de planta</span>
+        <span class="fl-legend-item"><span class="fl-avatar fl-avatar-mini fl-actor-system"><svg class="fl-figure fl-actor-system" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-system" /></svg></span>Sistema (noche)</span>
+        <span class="fl-legend-title fl-legend-gap">Origen</span>
+        <span class="fl-legend-item"><span class="fl-origin fl-origin-code">En código</span> lo que no lleva etiqueta</span>
+        <span class="fl-legend-item"><span class="fl-origin fl-origin-decided">Decidido, aún no en código</span></span>
+        <span class="fl-legend-item"><span class="fl-origin fl-origin-undefined">No definido</span></span>
+      </div>
+
+      <div class="fl-machine">
+        <div class="card fl-machine-order">
+          <div class="fl-machine-title">Orden</div>
+          <div class="fl-machine-row"><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span><span class="fl-arrow-label" data-flow-transition="launch"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Lanzar</small></span><span class="chip fl-chip-warn">Lanzada <span class="mono">RELEASED</span></span><span class="fl-arrow-label"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>1.ª acción</small></span><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span><span class="fl-arrow-label" data-flow-transition="activate"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Activar todo</small></span><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></div>
+          <div class="fl-machine-row fl-machine-branch"><span class="fl-branch-mark">↳ o bien</span><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span><span class="fl-arrow-label" data-flow-transition="activate"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Activar con pendientes</small></span><span class="chip fl-chip-warn">Activada en parte <span class="mono">PARTIALLY_ACTIVATED</span></span><span class="fl-arrow-label" data-flow-transition="withdraw"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Activar el resto o Retirar lo pendiente</small></span><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></div>
+          <div class="fl-machine-row fl-machine-branch"><span class="fl-branch-mark">↳ desde</span><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span><span class="chip fl-chip-warn">Lanzada <span class="mono">RELEASED</span></span><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span><span class="fl-arrow-label" data-flow-transition="cancel"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Anular</small></span><span class="chip fl-chip-danger">Anulada <span class="mono">CANCELLED</span></span><span class="fl-machine-note">no si la activación ya empezó</span></div>
+        </div>
+        <div class="card fl-machine-small">
+          <div class="fl-machine-title">Línea</div>
+          <div class="fl-machine-row"><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span><span class="fl-arrow-label" data-flow-transition="closePackage"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Cerrar bulto</small></span><span class="chip fl-chip-ok">Recogida <span class="mono">PICKED</span></span><span class="fl-arrow-label"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Activar</small></span><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activada</span></div>
+          <div class="fl-machine-row"><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span><span class="fl-arrow-label"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Anular · Retirar</small></span><span class="chip fl-chip-danger">Anulada <span class="mono">CANCELLED</span></span></div>
+          <p class="fl-machine-note">«Activada» no es un estado: es el sello <span class="mono">discountedFromBatchAt</span>. Reabrir el bulto devuelve la línea a Reservada.</p>
+        </div>
+        <div class="card fl-machine-small">
+          <div class="fl-machine-title">Bulto</div>
+          <div class="fl-machine-row"><span class="chip fl-chip-warn">Abierto <span class="mono">OPEN</span></span><span class="fl-arrow-label" data-flow-transition="closePackage"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Cerrar</small></span><span class="chip fl-chip-neutral-strong">Cerrado <span class="mono">CLOSED</span></span><span class="fl-arrow-label"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Activar</small></span><span class="chip fl-chip-ok">En planta <span class="mono">IN_PLANT</span></span><span class="fl-arrow-label"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Finalizar</small></span><span class="chip fl-chip-neutral-strong">Devuelto <span class="mono">RETURNED</span></span></div>
+          <p class="fl-machine-note">Cerrado vuelve a Abierto al reabrirlo (con permiso). Solo se tira si está Abierto y sin etiqueta.</p>
+        </div>
+        <div class="card fl-machine-small">
+          <div class="fl-machine-title">Consumo</div>
+          <div class="fl-machine-row"><span class="chip fl-chip-ok">Cerrado <span class="mono">CLOSED</span></span><span class="fl-arrow-label" data-flow-transition="reopenConsumption"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Reabrir (motivo)</small></span><span class="chip fl-chip-warn">Reabierto <span class="mono">REOPENED</span></span><span class="fl-arrow-label" data-flow-transition="finishConsumption"><svg class="icon small fl-arrow"><use href="#i-chevron-right" /></svg><small>Finalizar</small></span><span class="chip fl-chip-ok">Cerrado <span class="mono">CLOSED</span></span></div>
+          <p class="fl-machine-note">Al cerrar nace el lote sobrante; reabrir no lo toca.</p>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="a">
+        <div class="fl-case-head"><span class="fl-case-letter">A</span><h2>Camino normal (OF)</h2><span class="fl-case-summary">De la preasignación al lote sobrante: todo lo que pasa con una orden de fabricación.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span><span class="fl-origin fl-origin-decided">Decidido, aún no en código</span><span class="fl-origin fl-origin-undefined">No definido</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office" data-flow-step="a1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Preasignación</span></div>
+            </div>
+            <div class="fl-bubble">Elige OF, material y lotes y pulsa «Asignar»</div>
+            <p class="fl-text">Queda en el borrador: lo ven los demás, pero no reserva nada y caduca a las 24 h.</p>
+            <div class="fl-states fl-states-none">Sin cambio de estado</div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote no cambia: el borrador no reserva.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-office" data-flow-step="a2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Preasignación</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Generar orden de picking»</div>
+            <p class="fl-text">Nace la orden. Logística aún no la ve.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda comprometido: la reserva se calcula de las líneas vivas (no hay contador).</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-office" data-flow-step="a3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Lanzar»</div>
+            <p class="fl-text">Comprueba que el lote no haya menguado por debajo de lo comprometido; si menguó, no deja lanzar.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">Lanzada <span class="mono">RELEASED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sigue comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="a4">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">4</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Entra en la orden y hace su primera acción</div>
+            <p class="fl-text">Leer, teclear una cantidad o cambiar el lote. Abrir la pantalla no cuenta.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sigue comprometido.</span></div>
+            <div class="fl-step-tag"><span class="fl-origin fl-origin-undefined">No definido</span><span>No existe «solicitar» ni «asignarse» una orden: entra cualquiera con permiso y se avisa de quién más la tiene abierta.</span></div>
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="a5">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">5</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Lee material o bulto y pulsa «Cerrar bulto»</div>
+            <p class="fl-text">Los materiales leídos se acumulan y van al bulto leído. Se imprime la etiqueta.</p>
+            <div class="fl-states"><span class="fl-state"><small>Bulto</small><span class="chip fl-chip-neutral-strong">Cerrado <span class="mono">CLOSED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-ok">Recogida <span class="mono">PICKED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Todavía no se descuenta nada.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="a6">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">6</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Activar» con el palet completo</div>
+            <p class="fl-text">Se registra la venta (SaleEntry).</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span><span class="fl-state"><small>Bulto</small><span class="chip fl-chip-ok">En planta <span class="mono">IN_PLANT</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activadas <span class="mono">discountedFromBatchAt</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Cada lote se descuenta con lo recogido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-plant" data-flow-step="a7">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-plant"><svg class="fl-figure fl-actor-plant" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-plant" /></svg><span class="fl-step-number">7</span></div>
+              <div class="fl-step-who"><b class="fl-actor-plant">Operario de planta</b><span>Pistola › Consumo</span></div>
+            </div>
+            <div class="fl-bubble">Elige la OF y coge el material</div>
+            <p class="fl-text">La pistola le dice palet, almacén y ubicación. Se declara el consumo.</p>
+            <div class="fl-states fl-states-none">Sin cambio de estado</div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Lo cogido sale del stock.</span></div>
+            <div class="fl-step-tag"><span class="fl-origin fl-origin-decided">Decidido, aún no en código</span><span>Dos momentos: coger (consumo) y repartir (en uso).</span></div>
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-plant" data-flow-step="a8">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-plant"><svg class="fl-figure fl-actor-plant" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-plant" /></svg><span class="fl-step-number">8</span></div>
+              <div class="fl-step-who"><b class="fl-actor-plant">Operario de planta</b><span>Pistola › En uso</span></div>
+            </div>
+            <div class="fl-bubble">Reparte lo cogido</div>
+            <p class="fl-text">Consumido + merma + sobra. Las tres cosas deben sumar lo cogido.</p>
+            <div class="fl-states fl-states-none">Sin cambio de estado</div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sin cambio hasta finalizar.</span></div>
+            <div class="fl-step-tag"><span class="fl-origin fl-origin-decided">Decidido, aún no en código</span></div>
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-plant fl-step-highlight" data-flow-step="a9">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-plant"><svg class="fl-figure fl-actor-plant" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-plant" /></svg><span class="fl-step-number">9</span></div>
+              <div class="fl-step-who"><b class="fl-actor-plant">Operario de planta</b><span>Pistola › En uso</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Finalizar consumo de la OF»</div>
+            <p class="fl-text">Nace un lote SOBRANTE nuevo: otro código, «viene de» el lote origen, con su estado (abierto, picado, cortado, descongelado o del catálogo del cliente), su caducidad propuesta por la duración del artículo y su ubicación.</p>
+            <div class="fl-states"><span class="fl-state"><small>Consumo</small><span class="chip fl-chip-ok">Cerrado <span class="mono">CLOSED</span></span></span><span class="fl-state"><small>Bulto</small><span class="chip fl-chip-neutral-strong">Devuelto <span class="mono">RETURNED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote origen NO recupera cantidad: la sobra vive en el lote sobrante.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="b">
+        <div class="fl-case-head"><span class="fl-case-letter">B</span><h2>«Generar y lanzar»</h2><span class="fl-case-summary">Un solo botón que hace Generar + Lanzar seguido.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office" data-flow-step="b1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Preasignación</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Generar y lanzar»</div>
+            <p class="fl-text">Genera la orden y la lanza en el mismo paso.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">Lanzada <span class="mono">RELEASED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector fl-connector-or" aria-hidden="true">o</div>
+          <article class="card fl-step fl-step-office" data-flow-step="b2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Preasignación</span></div>
+            </div>
+            <div class="fl-bubble">Si el lanzamiento falla…</div>
+            <p class="fl-text">La orden ya está generada y se queda Reservada; se lanza después.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda comprometido igual.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="c">
+        <div class="fl-case-head"><span class="fl-case-letter">C</span><h2>Palet incompleto</h2><span class="fl-case-summary">Se recoge menos de lo reservado y se activa igual.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-warehouse" data-flow-step="c1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Recoge menos de lo reservado</div>
+            <p class="fl-text">Ejemplo: reservados 500 kg, en el palet hay 420 kg.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Siguen comprometidos los 500 kg.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="c2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Cerrar bulto»</div>
+            <p class="fl-text">La etiqueta lleva lo recogido (420 kg).</p>
+            <div class="fl-states"><span class="fl-state"><small>Bulto</small><span class="chip fl-chip-neutral-strong">Cerrado <span class="mono">CLOSED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-ok">Recogida <span class="mono">PICKED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Todavía no se descuenta nada.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="c3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Activar»</div>
+            <p class="fl-text">No se crea ninguna orden nueva por la diferencia.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span><span class="fl-state"><small>Bulto</small><span class="chip fl-chip-ok">En planta <span class="mono">IN_PLANT</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activadas <span class="mono">discountedFromBatchAt</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Se descuentan solo 420 kg; los 80 kg de diferencia vuelven a estar libres en el lote.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="d">
+        <div class="fl-case-head"><span class="fl-case-letter">D</span><h2>Faltan líneas sin bulto</h2><span class="fl-case-summary">Se activa con líneas sin cerrar: la orden queda activada en parte.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-warehouse" data-flow-step="d1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Activar» con líneas sin cerrar</div>
+            <p class="fl-text">Se activan las líneas con bulto cerrado; las demás quedan pendientes.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">Activada en parte <span class="mono">PARTIALLY_ACTIVATED</span></span></span><span class="fl-state"><small>Líneas <em>con bulto</em></small><span class="chip fl-chip-ok">Recogida <span class="mono">PICKED</span></span></span><span class="fl-state"><small>Líneas <em>pendientes</em></small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Se descuenta lo cerrado; lo pendiente sigue reservando el lote.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="d2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Completa lo pendiente y vuelve a activar</div>
+            <p class="fl-text">Cierra el bulto de lo que faltaba.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activadas <span class="mono">discountedFromBatchAt</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Se descuenta el resto.</span></div>
+            
+          </article>
+          <div class="fl-connector fl-connector-or" aria-hidden="true">o</div>
+          <article class="card fl-step fl-step-office" data-flow-step="d3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Retirar lo pendiente»</div>
+            <p class="fl-text">Motivo obligatorio. También un operario con permiso.</p>
+            <div class="fl-states"><span class="fl-state"><small>Líneas <em>pendientes</em></small><span class="chip fl-chip-danger">Anulada <span class="mono">CANCELLED</span></span></span><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda libre de lo pendiente.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="e">
+        <div class="fl-case-head"><span class="fl-case-letter">E</span><h2>Anular orden</h2><span class="fl-case-summary">La orden entera se anula antes de que empiece la activación.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span><span class="fl-origin fl-origin-undefined">No definido</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office" data-flow-step="e1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Anular»</div>
+            <p class="fl-text">Desde Reservada, Lanzada o En preparación.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-danger">Anulada <span class="mono">CANCELLED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-danger">Anulada <span class="mono">CANCELLED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda libre.</span></div>
+            
+          </article>
+          <div class="fl-connector fl-connector-or" aria-hidden="true">o</div>
+          <article class="card fl-step fl-step-office fl-step-blocked" data-flow-step="e2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble"><svg class="icon small"><use href="#i-x" /></svg>Si la activación ya empezó…</div>
+            <p class="fl-text">No deja anular. Una activación no se deshace: se corrige con una devolución.</p>
+            <div class="fl-states fl-states-none">Sin cambio de estado</div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Lo descontado sigue descontado.</span></div>
+            
+          </article>
+          <div class="fl-connector fl-connector-or" aria-hidden="true">o</div>
+          <article class="card fl-step fl-step-office fl-step-blocked" data-flow-step="e3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble"><svg class="icon small"><use href="#i-x" /></svg>Anular una sola línea antes de activar</div>
+            <p class="fl-text">No existe esta acción.</p>
+            <div class="fl-states fl-states-none">Sin cambio de estado</div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>—</span></div>
+            <div class="fl-step-tag"><span class="fl-origin fl-origin-undefined">No definido</span></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="f">
+        <div class="fl-case-head"><span class="fl-case-letter">F</span><h2>Lote menguado / cambio de lote</h2><span class="fl-case-summary">Qué pasa si el lote tiene menos de lo comprometido.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office fl-step-blocked" data-flow-step="f1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble"><svg class="icon small"><use href="#i-x" /></svg>Pulsa «Lanzar» con el lote menguado</div>
+            <p class="fl-text">Si el lote menguó por debajo de lo comprometido, no deja lanzar.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Se compara el stock del lote con lo comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="f2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Cambia el lote en el desplegable de lotes</div>
+            <p class="fl-text">Solo si el lote nuevo tiene libre lo reservado.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>La reserva pasa al lote nuevo.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="f3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Activar» con el lote menguado</div>
+            <p class="fl-text">No se rechaza: se deja un aviso en el log.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activadas <span class="mono">discountedFromBatchAt</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda a 0.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="g">
+        <div class="fl-case-head"><span class="fl-case-letter">G</span><h2>Reabrir o tirar un bulto</h2><span class="fl-case-summary">Deshacer un bulto antes de activar.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-warehouse" data-flow-step="g1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Reabre un bulto cerrado</div>
+            <p class="fl-text">Necesita permiso.</p>
+            <div class="fl-states"><span class="fl-state"><small>Bulto</small><span class="chip fl-chip-warn">Abierto <span class="mono">OPEN</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sin cambio: sigue comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector fl-connector-or" aria-hidden="true">o</div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="g2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Tira un bulto</div>
+            <p class="fl-text">Solo si está Abierto y sin etiqueta impresa.</p>
+            <div class="fl-states"><span class="fl-state"><small>Bulto <em>requisito</em></small><span class="chip fl-chip-warn">Abierto <span class="mono">OPEN</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sin cambio.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="h">
+        <div class="fl-case-head"><span class="fl-case-letter">H</span><h2>Orden de emergencia</h2><span class="fl-case-summary">Una orden hecha a mano, con el lote elegido en cada línea.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office" data-flow-step="h1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble">Crea una orden de emergencia</div>
+            <p class="fl-text">Orden manual: elige el lote en cada línea.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-office" data-flow-step="h2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Lanzar»</div>
+            <p class="fl-text">Igual que una orden de OF.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">Lanzada <span class="mono">RELEASED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sigue comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="h3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Preparar</span></div>
+            </div>
+            <div class="fl-bubble">Prepara, activa… y planta consume</div>
+            <p class="fl-text">Desde aquí sigue el camino normal: se consume como una OF.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activadas <span class="mono">discountedFromBatchAt</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Como en el camino normal.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="i">
+        <div class="fl-case-head"><span class="fl-case-letter">I</span><h2>Kanban</h2><span class="fl-case-summary">Reponer las ubicaciones Kanban que están bajo mínimo.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span><span class="fl-origin fl-origin-decided">Decidido, aún no en código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office" data-flow-step="i1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Kanban</span></div>
+            </div>
+            <div class="fl-bubble">Genera las órdenes Kanban</div>
+            <p class="fl-text">Desde las ubicaciones bajo mínimo.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-neutral-strong">Reservada <span class="mono">RESERVED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El lote queda comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-office" data-flow-step="i2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Órdenes de picking</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Lanzar»</div>
+            
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">Lanzada <span class="mono">RELEASED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sigue comprometido.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="i3">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">3</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Kanban</span></div>
+            </div>
+            <div class="fl-bubble">Prepara sin bultos</div>
+            <p class="fl-text">Decisión del 08/10/2026; la spec decía bulto o entrega directa.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-warn">En preparación <span class="mono">IN_PREPARATION</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Sigue comprometido.</span></div>
+            <div class="fl-step-tag"><span class="fl-origin fl-origin-decided">Decidido, aún no en código</span></div>
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-warehouse" data-flow-step="i4">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-warehouse"><svg class="fl-figure fl-actor-warehouse" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-warehouse" /></svg><span class="fl-step-number">4</span></div>
+              <div class="fl-step-who"><b class="fl-actor-warehouse">Operario de almacén</b><span>Pistola › Kanban</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Activar»</div>
+            <p class="fl-text">Una orden Kanban no se consume.</p>
+            <div class="fl-states"><span class="fl-state"><small>Orden</small><span class="chip fl-chip-ok">Activada <span class="mono">ACTIVATED</span></span></span><span class="fl-state"><small>Líneas</small><span class="chip fl-chip-stamp"><svg class="icon small"><use href="#i-check" /></svg>activadas <span class="mono">discountedFromBatchAt</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Se descuenta el lote y se suma a la ubicación Kanban.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="j">
+        <div class="fl-case-head"><span class="fl-case-letter">J</span><h2>Reabrir consumo</h2><span class="fl-case-summary">Corregir un consumo ya finalizado.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-office" data-flow-step="j1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-office"><svg class="fl-figure fl-actor-office" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-office" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-office">Oficina</b><span>Consumo</span></div>
+            </div>
+            <div class="fl-bubble">Pulsa «Reabrir consumo»</div>
+            <p class="fl-text">Con permiso y motivo.</p>
+            <div class="fl-states"><span class="fl-state"><small>Consumo</small><span class="chip fl-chip-warn">Reabierto <span class="mono">REOPENED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>El sobrante ya creado no se toca.</span></div>
+            
+          </article>
+          <div class="fl-connector" aria-hidden="true"><svg class="icon"><use href="#i-chevron-right" /></svg></div>
+          <article class="card fl-step fl-step-plant" data-flow-step="j2">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-plant"><svg class="fl-figure fl-actor-plant" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-plant" /></svg><span class="fl-step-number">2</span></div>
+              <div class="fl-step-who"><b class="fl-actor-plant">Operario de planta</b><span>Pistola › En uso</span></div>
+            </div>
+            <div class="fl-bubble">Corrige el reparto y vuelve a finalizar</div>
+            <p class="fl-text">El cierre nuevo tiene en cuenta el sobrante ya creado.</p>
+            <div class="fl-states"><span class="fl-state"><small>Consumo</small><span class="chip fl-chip-ok">Cerrado <span class="mono">CLOSED</span></span></span></div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Solo cambia la diferencia.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case" data-flow-case="k">
+        <div class="fl-case-head"><span class="fl-case-letter">K</span><h2>Noche</h2><span class="fl-case-summary">Lo que hace el sistema solo, sin nadie delante.</span><span class="fl-case-tags"><span class="fl-origin fl-origin-code">En código</span></span></div>
+        <div class="fl-board">
+          <article class="card fl-step fl-step-system" data-flow-step="k1">
+            <div class="fl-step-head">
+              <div class="fl-avatar fl-actor-system"><svg class="fl-figure fl-actor-system" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#fl-fig-system" /></svg><span class="fl-step-number">1</span></div>
+              <div class="fl-step-who"><b class="fl-actor-system">Sistema (noche)</b><span>Tarea de cada noche</span></div>
+            </div>
+            <div class="fl-bubble">Archiva los lotes vacíos</div>
+            <p class="fl-text">Los lotes a 0 que no tienen ninguna línea viva.</p>
+            <div class="fl-states fl-states-none">Sin cambio de estado</div>
+            <div class="fl-stock"><svg class="icon small"><use href="#i-box" /></svg><span>Dejan de salir en la preasignación.</span></div>
+            
+          </article>
+        </div>
+      </div>
+
+      <div class="fl-case fl-alerts-only" data-flow-case="fuera">
+        <div class="fl-case-head"><span class="fl-case-letter fl-case-letter-alert"><svg class="icon small"><use href="#i-alert" /></svg></span><h2>Alertas fuera del flujo</h2><span class="fl-case-summary">Avisos del catálogo que no salen en ningún paso de estos casos.</span></div>
+        <div class="card fl-outside"><div class="fl-alert-list" data-flow-outside></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+<script>
+/*
+ * Flow screen: case filter and the «Alertas: Mostrar · Ocultar» switch.
+ *
+ * The alerts are NOT copied here: they are read from the «Alertas» screen of this same page
+ * (pantallas/alertas.html), by their name, so both screens always show the same name, gravity,
+ * text and origin. To move an alert to another step, edit ALERTS_BY_STEP below.
+ */
+(function setUpFlowScreen() {
+  /* Step id (case letter + step number, as in data-flow-step) → names of the alerts that can fire there. */
+  const ALERTS_BY_STEP = {
+    a1: ['Lote a punto de caducar', 'Lote caducado', 'Más de lo libre en el lote', 'Lote agotado', 'Sobrante que caduca antes'],
+    a2: ['Falta material', 'Lote caducado', 'Más de lo libre en el lote', 'Ubicación del lote inesperada'],
+    a3: ['El lote ha menguado', 'Lote menguado: aviso temprano', 'Cambio de estado no permitido', 'Otra persona la ha cambiado'],
+    a4: ['Primero la orden', 'Lote distinto del de la orden', 'Sin permiso para cambiar el lote', 'Lote caducado en la pistola', 'Código no reconocido', 'Etiqueta de otra pantalla', 'Lote o bulto desconocido', 'Lectura pendiente'],
+    a5: ['Primero el bulto', 'Artículo que no es de la orden', 'Más de lo que falta', 'Otro lote en el bulto', 'Bulto de otro destino', 'Bulto cerrado', 'Bulto por encima del peso máximo', 'Bulto vacío'],
+    a6: ['Nada listo para activar', 'Líneas sin bulto', 'Venta no encolada'],
+    a7: ['Más de lo disponible', 'Más de lo que necesita', 'Consumo cerrado', 'Operario que ya no firma'],
+    a8: ['El reparto no cuadra', 'Merma sin causa', 'Sobrante mayor que lo que queda'],
+    a9: ['Caducidad del sobrante', 'Ubicación de sobrante inesperada', 'Formularios pendientes', 'Declarado de más'],
+    b1: ['Falta material', 'Más de lo libre en el lote', 'El lote ha menguado'],
+    d1: ['Activada con venta parcial', 'Líneas sin bulto'],
+    d3: ['Retirar sin motivo'],
+    e1: ['Cambio de estado no permitido', 'Otra persona la ha cambiado', 'La orden ya no existe'],
+    e2: ['Activación ya empezada', 'Líneas entregadas sin activar'],
+    f1: ['El lote ha menguado', 'Lote menguado: aviso temprano'],
+    f2: ['Más de lo libre en el lote', 'Sin permiso para cambiar el lote', 'Lote distinto del de la orden'],
+    h1: ['Lote caducado', 'Más de lo libre en el lote'],
+    i1: ['Ubicación bajo el mínimo', 'Ubicación sin configurar', 'La reposición pasa un límite', 'Falta en el RP para reponer', 'Ubicación apagada o artículo no Kanban'],
+    i3: ['Entregar es definitivo', 'Línea ya entregada'],
+    i4: ['Nada listo para activar', 'Venta no encolada'],
+  };
+
+  /* Transition of the state strips (data-flow-transition) → alerts that can BLOCK it. */
+  const BLOCKING_ALERTS_BY_TRANSITION = {
+    launch: ['El lote ha menguado'],
+    activate: ['Nada listo para activar', 'Venta no encolada'],
+    withdraw: ['Retirar sin motivo'],
+    cancel: ['Activación ya empezada', 'Líneas entregadas sin activar'],
+    closePackage: ['Bulto vacío'],
+    finishConsumption: ['El reparto no cuadra', 'Caducidad del sobrante', 'Sobrante mayor que lo que queda'],
+  };
+
+  const flowScreen = document.querySelector('[data-screen="flujo"]');
+  if (!flowScreen) return;
+
+  /* ---------- Case filter ---------- */
+  const filterButtons = flowScreen.querySelectorAll('[data-flow-filter]');
+  const caseBlocks = flowScreen.querySelectorAll('[data-flow-case]');
+  filterButtons.forEach((filterButton) => {
+    filterButton.addEventListener('click', () => {
+      const chosenCase = filterButton.dataset.flowFilter;
+      filterButtons.forEach((button) => button.classList.toggle('is-on', button === filterButton));
+      caseBlocks.forEach((caseBlock) => {
+        caseBlock.hidden = chosenCase !== 'all' && caseBlock.dataset.flowCase !== chosenCase;
+      });
+      const scrollBody = flowScreen.querySelector('.fl-body');
+      if (scrollBody && chosenCase !== 'all') {
+        const chosenBlock = flowScreen.querySelector('[data-flow-case="' + chosenCase + '"]');
+        if (chosenBlock) scrollBody.scrollTop = chosenBlock.offsetTop - scrollBody.offsetTop;
+      }
+    });
+  });
+
+  /* ---------- Alerts, read from the «Alertas» screen ---------- */
+  function readAlertCatalogue() {
+    const catalogue = new Map();
+    document.querySelectorAll('[data-screen="alertas"] .al-card').forEach((alertCard) => {
+      const nameElement = alertCard.querySelector('.al-name');
+      if (!nameElement) return;
+      const originElement = alertCard.querySelector('.al-origin');
+      catalogue.set(nameElement.textContent.trim(), {
+        name: nameElement.textContent.trim(),
+        gravityChip: alertCard.querySelector('.al-card-top .chip'),
+        text: (alertCard.querySelector('.al-fact q') || {}).textContent || '',
+        originText: originElement ? originElement.textContent.trim() : '',
+        isInCode: Boolean(originElement && originElement.classList.contains('al-origin-code')),
+        isNew: Boolean(originElement && originElement.classList.contains('al-origin-new')),
+      });
+    });
+    return catalogue;
+  }
+
+  function alertItem(alert) {
+    const item = document.createElement('div');
+    item.className = 'fl-alert';
+    const head = document.createElement('div');
+    head.className = 'fl-alert-head';
+    if (alert.gravityChip) head.appendChild(alert.gravityChip.cloneNode(true));
+    const name = document.createElement('b');
+    name.textContent = alert.name;
+    head.appendChild(name);
+    if (!alert.isInCode && alert.originText) {
+      const origin = document.createElement('span');
+      origin.className = 'fl-origin ' + (alert.isNew ? 'fl-origin-new' : 'fl-origin-decided');
+      origin.textContent = alert.originText;
+      head.appendChild(origin);
+    }
+    item.appendChild(head);
+    const quote = document.createElement('q');
+    quote.textContent = alert.text;
+    quote.title = alert.text;
+    item.appendChild(quote);
+    return item;
+  }
+
+  function placeAlerts() {
+    const catalogue = readAlertCatalogue();
+    const placedNames = new Set();
+
+    Object.keys(ALERTS_BY_STEP).forEach((stepId) => {
+      const stepCard = flowScreen.querySelector('[data-flow-step="' + stepId + '"]');
+      const alerts = ALERTS_BY_STEP[stepId].map((alertName) => catalogue.get(alertName)).filter(Boolean);
+      if (!stepCard || alerts.length === 0) return;
+      const block = document.createElement('div');
+      block.className = 'fl-alerts fl-alerts-only';
+      block.innerHTML = '<div class="fl-alerts-title"><svg class="icon small"><use href="#i-alert" /></svg>Alertas que pueden salir aquí · ' + alerts.length + '</div><div class="fl-alert-list"></div>';
+      const list = block.querySelector('.fl-alert-list');
+      alerts.forEach((alert) => {
+        list.appendChild(alertItem(alert));
+        placedNames.add(alert.name);
+      });
+      stepCard.appendChild(block);
+    });
+
+    const outsideList = flowScreen.querySelector('[data-flow-outside]');
+    if (outsideList) {
+      catalogue.forEach((alert) => {
+        if (!placedNames.has(alert.name)) outsideList.appendChild(alertItem(alert));
+      });
+      const outsideCase = outsideList.closest('.fl-case');
+      if (outsideCase && outsideList.children.length === 0) outsideCase.remove();
+    }
+
+    flowScreen.querySelectorAll('[data-flow-transition]').forEach((transition) => {
+      const blockingNames = (BLOCKING_ALERTS_BY_TRANSITION[transition.dataset.flowTransition] || []).filter((alertName) => catalogue.has(alertName));
+      if (blockingNames.length === 0) return;
+      const mark = document.createElement('span');
+      mark.className = 'fl-block-mark fl-alerts-only';
+      mark.title = 'Puede bloquearlo: ' + blockingNames.join(' · ');
+      mark.innerHTML = '<svg class="icon"><use href="#i-x" /></svg>';
+      (transition.querySelector('small') || transition).appendChild(mark);
+    });
+  }
+
+  /* ---------- «Mostrar · Ocultar»: the address (alerts=1) wins, then this browser's last choice ---------- */
+  const STORAGE_KEY = 'mip-flujo-alerts';
+  const switchButtons = flowScreen.querySelectorAll('[data-flow-alerts]');
+
+  function showAlerts(isShown, shouldRemember) {
+    flowScreen.classList.toggle('fl-show-alerts', isShown);
+    switchButtons.forEach((button) => button.classList.toggle('is-active', (button.dataset.flowAlerts === 'on') === isShown));
+    if (!shouldRemember) return;
+    const addressParameters = new URLSearchParams(window.location.hash.slice(1));
+    if (isShown) addressParameters.set('alerts', '1');
+    else addressParameters.delete('alerts');
+    history.replaceState(null, '', '#' + addressParameters.toString());
+    try { localStorage.setItem(STORAGE_KEY, isShown ? '1' : '0'); } catch (storageError) { /* Private window: the address still keeps it. */ }
+  }
+
+  function initialChoice() {
+    const fromAddress = new URLSearchParams(window.location.hash.slice(1)).get('alerts');
+    if (fromAddress !== null) return fromAddress === '1';
+    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch (storageError) { return false; }
+  }
+
+  switchButtons.forEach((button) => {
+    button.addEventListener('click', () => showAlerts(button.dataset.flowAlerts === 'on', true));
+  });
+
+  function start() {
+    placeAlerts();
+    showAlerts(initialChoice(), false);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
 
   </main>
 </div>
