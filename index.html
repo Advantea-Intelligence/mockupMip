@@ -1025,7 +1025,7 @@ html[data-theme='dark'] .theme-toggle .icon-moon, html[data-theme='light'] .them
 
           <div class="panel" data-step-panel="wo:3">
             <div class="panel-head">
-              <div><h2>Elige los lotes</h2><p>Marcar un lote ya lo reserva: pasa al resumen en el acto.</p></div>
+              <div><h2>Elige los lotes</h2><p>Marca los lotes y pulsa «Asignar»: lo marcado pasa al resumen.</p></div>
               <div class="spacer"></div>
               <button class="btn"><svg class="icon small"><use href="#i-star" /></svg> Marcar los propuestos</button>
             </div>
@@ -1175,7 +1175,7 @@ html[data-theme='dark'] .theme-toggle .icon-moon, html[data-theme='light'] .them
           <aside class="drawer">
             <header class="drawer-head">
               <span class="step current">2</span>
-              <div><div class="drawer-title"><span class="mono">166201</span> Arabeschi Biscotto SAP</div><div class="drawer-sub">Requerido 3720 · Ya reservado 0 · marcar un lote ya lo reserva</div></div>
+              <div><div class="drawer-title"><span class="mono">166201</span> Arabeschi Biscotto SAP</div><div class="drawer-sub">Requerido 3720 · Ya reservado 0 · marca los lotes y pulsa «Asignar»</div></div>
               <div class="spacer"></div>
               <button class="btn btn-icon btn-ghost" data-close-drawer title="Cerrar"><svg class="icon"><use href="#i-x" /></svg></button>
             </header>
@@ -1184,8 +1184,8 @@ html[data-theme='dark'] .theme-toggle .icon-moon, html[data-theme='light'] .them
               <div data-render="lots-wo"></div>
             </div>
             <footer class="drawer-foot">
-              <div style="flex: 1" data-render="lots-wo-total"></div>
-              <button class="btn btn-primary" data-close-drawer>Listo</button>
+              <div style="flex: 1" data-render="lots-wo-marked"></div>
+              <button class="btn btn-primary" data-close-drawer><svg class="icon small"><use href="#i-check" /></svg> Asignar 2400</button>
             </footer>
           </aside>
         </div>
@@ -1246,8 +1246,8 @@ html[data-theme='dark'] .theme-toggle .icon-moon, html[data-theme='light'] .them
               <div data-render="lots-kanban"></div>
             </div>
             <footer class="drawer-foot">
-              <div style="flex: 1" data-render="lots-kanban-total"></div>
-              <button class="btn btn-primary" data-close-drawer>Listo</button>
+              <div style="flex: 1" data-render="lots-kanban-marked"></div>
+              <button class="btn btn-primary" data-close-drawer><svg class="icon small"><use href="#i-check" /></svg> Asignar 1178</button>
             </footer>
           </aside>
         </div>
@@ -13424,7 +13424,7 @@ function lotRow(lot) {
   </label>`;
 }
 
-function markedTotal(marked, needed, label) {
+function markedTotal(marked, needed, label, action = '') {
   const missing = needed - marked;
   const state = missing > 0.001
     ? `<span class="missing">faltan ${formatQuantity(missing)}</span>`
@@ -13432,8 +13432,13 @@ function markedTotal(marked, needed, label) {
   return `<div class="marked-total">
     <div class="marked-line"><span>${label}: <b>${formatQuantity(marked)}</b> de ${formatQuantity(needed)}</span>${state}</div>
     <div class="bar"><span class="assigned" style="width:${Math.min((marked / needed) * 100, 100)}%"></span></div>
+    ${action}
   </div>`;
 }
+
+/** Marking a lot does not reserve it yet: «Asignar» moves what is marked to the summary. */
+const assignButton = (marked) =>
+  `<button class="btn btn-primary btn-block">${icon('check')} Asignar ${formatQuantity(marked)}</button>`;
 
 function cartOfWorkOrders() {
   return materials.map((material) => {
@@ -13511,7 +13516,8 @@ const renderers = {
   }).join(''),
 
   'lots-wo': () => `<div class="lot-list">${lotsOfFocusedMaterial.map(lotRow).join('')}</div>`,
-  'lots-wo-total': () => markedTotal(2400, 3720, 'Marcado'),
+  'lots-wo-total': () => markedTotal(2400, 3720, 'Marcado', assignButton(2400)),
+  'lots-wo-marked': () => markedTotal(2400, 3720, 'Marcado'),
   'cart-wo': () => cartOfWorkOrders(),
 
   'kanban-a': () => kanbanLocations.map((location) => `<div class="kanban-row ${location.marked ? 'is-marked' : ''} ${location.level === 'unconfigured' ? 'is-quiet' : ''}">
@@ -13526,7 +13532,8 @@ const renderers = {
     </div>`).join(''),
 
   'lots-kanban': () => `<div class="lot-list">${kanbanLots.map(lotRow).join('')}</div>`,
-  'lots-kanban-total': () => markedTotal(1178, 1178, 'Marcado'),
+  'lots-kanban-total': () => markedTotal(1178, 1178, 'Marcado', assignButton(1178)),
+  'lots-kanban-marked': () => markedTotal(1178, 1178, 'Marcado'),
   'cart-kanban': () => cartOfKanban(),
   'kanban-facts': () => kanbanFacts(),
 
